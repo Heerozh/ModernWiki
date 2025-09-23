@@ -1,0 +1,17 @@
+:3000 {
+    root * /site
+    file_server
+    
+    # Enable directory browsing for debugging (optional)
+    file_server browse
+    
+    # Add CORS headers for development
+    header {
+        Access-Control-Allow-Origin "*"
+        Access-Control-Allow-Methods "GET, POST, OPTIONS"
+        Access-Control-Allow-Headers "Content-Type"
+    }
+    
+    # Try files in order, fallback to index.html for SPA behavior
+    try_files {path} {path}/ {path}/index.html /index.html
+}

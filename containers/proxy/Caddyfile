@@ -1,0 +1,26 @@
+:80 {
+    # Health check endpoint
+    handle /health {
+        respond "ModernWiki Proxy is healthy" 200
+    }
+    
+    # Webhook endpoint - proxy to webhook controller
+    handle /webhook* {
+        reverse_proxy webhook:5000
+    }
+    
+    # Import additional Caddyfile configurations
+    # Users can mount their own rules to /etc/caddy/conf.d/
+    import /etc/caddy/conf.d/*
+    
+    # Default route - proxy to static site
+    handle {
+        reverse_proxy static-site:3000
+    }
+    
+    # Logging
+    log {
+        output stdout
+        level INFO
+    }
+}

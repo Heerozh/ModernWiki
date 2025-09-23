@@ -1,0 +1,28 @@
+# Ignore environment files
+.env
+
+# Ignore build artifacts
+dist/
+build/
+site/
+
+# Ignore logs
+*.log
+logs/
+
+# Ignore temporary files
+tmp/
+temp/
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore Docker volumes
+site_data/
