@@ -1,0 +1,60 @@
+
+services:
+  # Hugo site generation container
+  hugo-builder:
+    build:
+      context: ./containers/hugo-builder
+      dockerfile: Dockerfile
+    environment:
+      - GIT_REPO=${GIT_REPO:-https://github.com/example/example-wiki.git}
+      - GIT_BRANCH=${GIT_BRANCH:-main}
+      - SITE_DIR=/site
+    volumes:
+      - site_data:/site
+      - /tmp/demo-wiki:/tmp/demo-wiki:ro  # Mount demo repository
+    restart: "no"  # Run once to build site
+    profiles:
+      - build
+
+  # Static site container with Caddy
+  static-site:
+    build:
+      context: ./containers/static-site
+      dockerfile: Dockerfile
+    volumes:
+      - site_data:/site:ro
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+
+  # Webhook controller container
+  webhook:
+    build:
+      context: ./containers/webhook
+      dockerfile: Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    ports:
+      - "5000:5000"
+    environment:
+      - FLASK_ENV=production
+    restart: unless-stopped
+
+  # Entry reverse proxy container
+  proxy:
+    build:
+      context: ./containers/proxy
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    volumes:
+      # Mount additional Caddyfile configurations
+      - ./proxy-config:/etc/caddy/conf.d:ro
+    depends_on:
+      - static-site
+      - webhook
+    restart: unless-stopped
+
+volumes:
+  site_data:
+    driver: local

@@ -1,0 +1,11 @@
+# Additional proxy rules
+# Users can add their own routing rules here
+# 
+# Example:
+# handle /api* {
+#     reverse_proxy api-server:8080
+# }
+#
+# handle /admin* {
+#     reverse_proxy admin-panel:3001
+# }
