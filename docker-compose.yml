@@ -5,16 +5,16 @@ services:
     build:
       context: ./containers/hugo-builder
       dockerfile: Dockerfile
+    env_file:
+      - .env.example
     environment:
-      - GIT_REPO=${GIT_REPO:-https://github.com/example/example-wiki.git}
-      - GIT_BRANCH=${GIT_BRANCH:-main}
       - SITE_DIR=/site
     volumes:
       - site_data:/site
       - /tmp/demo-wiki:/tmp/demo-wiki:ro  # Mount demo repository
     restart: "no"  # Run once to build site
-    profiles:
-      - build
+    # profiles:
+    #   - build
 
   # Static site container with Caddy
   static-site:
