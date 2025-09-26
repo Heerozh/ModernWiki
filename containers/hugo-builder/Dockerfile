@@ -1,4 +1,4 @@
-FROM hugomods/hugo:std-git
+FROM hugomods/hugo:git
 
 # Create working directory
 WORKDIR /src
