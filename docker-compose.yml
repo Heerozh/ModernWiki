@@ -6,7 +6,7 @@ services:
       context: ./containers/hugo-builder
       dockerfile: Dockerfile
     env_file:
-      - .env.example
+      - .env
     environment:
       - SITE_DIR=/site
     volumes:
@@ -47,7 +47,7 @@ services:
       context: ./containers/webhook
       dockerfile: Dockerfile
     env_file:
-      - .env.example      
+      - .env    
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
@@ -65,7 +65,7 @@ services:
       - "80:80"
       - "443:443"
     env_file:
-      - .env.example
+      - .env
     volumes:
       # Mount additional Caddyfile configurations
       - ./proxy-config:/etc/caddy/conf.d:ro
