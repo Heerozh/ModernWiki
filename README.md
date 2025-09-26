@@ -18,39 +18,6 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 
 前往某云，购买轻量应用服务器，开 docker，clone 本 repo，修改.env 文件，docker-compose up -d
 
-## 系统流程
-
-## 系统架构
-
-ModernWiki 由四个 Docker 容器组成：
-
-### 1. 站点刷新容器 (hugo-builder)
-
-- 基于 `klakegg/hugo:latest` 镜像
-- 从环境变量获取 Git 仓库地址和分支
-- 拉取 Git 仓库并使用 Hugo 生成静态网页
-- 输出到共享 volume 的 `site` 目录
-
-### 2. 静态站点容器 (static-site)
-
-- 基于 `caddy:latest` 镜像
-- 监听 3000 端口
-- 服务 `site` 目录中的静态文件
-
-### 3. Webhook 控制器容器 (webhook)
-
-- 基于 Python Flask 框架
-- 监听 5000 端口
-- 接收 webhook 请求并触发站点重新构建
-
-### 4. 入口反代容器 (proxy)
-
-- 基于 `caddy:latest` 镜像
-- 监听 80 端口作为入口
-- 路由规则：
-  - `/` → 静态网页容器
-  - `/webhook` → webhook 容器
-  - 支持导入额外的 Caddyfile 配置
 
 ## 快速开始
 
@@ -88,80 +55,53 @@ docker compose up -d
 - Webhook 端点：http://localhost/webhook
 - 健康检查：http://localhost/health
 
-## 内容管理
-
-### Git 仓库结构
-
-你的 Git 仓库应该包含 Hugo 站点内容：
-
-```
-your-wiki-repo/
-├── config.yaml          # Hugo 配置文件（可选）
-├── content/             # Markdown 内容文件
-│   ├── _index.md        # 首页
-│   ├── page1.md         # 页面 1
-│   └── folder/          # 文件夹
-│       └── page2.md     # 页面 2
-├── static/              # 静态资源（图片等）
-└── layouts/             # 自定义模板（可选）
-```
-
-### 基本 Markdown 示例
-
-在 `content/_index.md` 中：
-
-```markdown
----
-title: "欢迎使用 ModernWiki"
----
-
-# 欢迎使用 ModernWiki
-
-这是一个基于 Git + Hugo 的现代 Wiki 系统。
-
-## 特性
-
-- Git 版本控制
-- 静态站点生成
-- 自动构建部署
-- 容器化部署
-```
-
-### 自动更新
+### 设置自动更新
 
 当你的 Git 仓库内容更新时，可以通过以下方式触发站点重新构建：
 
 1. **Webhook 方式**：配置 Git 仓库的 webhook 指向 `http://your-domain/webhook`
 2. **手动触发**：发送 POST 请求到 `http://your-domain/webhook`
-3. **重启容器**：`docker-compose restart hugo-builder`
 
-## 自定义配置
+## 系统架构解析
 
-### 添加自定义路由
+ModernWiki 由四个 Docker 容器合并组成：
 
-在 `proxy-config/custom.caddyfile` 中添加自定义路由规则：
+### 1. 站点刷新容器 (hugo-builder)
 
-```caddyfile
-# API 服务路由
-handle /api* {
-    reverse_proxy api-server:8080
-}
+- 拉取 Git 仓库并使用 Hugo 生成静态网页
+- 输出到共享的 `site` 目录
+- 一次性容器，执行完退出。
 
-# 管理面板路由
-handle /admin* {
-    reverse_proxy admin-panel:3001
-}
-```
+### 2. 静态站点容器 (static-site)
 
-### Hugo 主题和样式
+- 持续服务 `site` 目录中的静态文件
 
-如果你的 Git 仓库没有 Hugo 配置，系统会自动创建一个基本的配置和样式。你可以：
+### 3. Webhook 控制器容器 (webhook)
 
-1. 在 Git 仓库中添加 `config.yaml` 配置文件
-2. 在 `layouts/` 目录中自定义模板
-3. 在 `static/` 目录中添加自定义 CSS/JS
+- 持续接收 git push 时的 webhook 请求
+- 收到后 restart hugo-builder
+
+### 4. 入口反代容器 (proxy)
+
+- 监听 80 端口作为入口
+- 路由规则：
+  - `/` → 静态网页容器
+  - `/webhook` → webhook 容器
+  - 支持导入额外的 Caddyfile 站点配置
 
 ## 开发和调试
+
+### 升级
+
+首先更新本仓库
+```bash
+git pull
+```
+然后执行 docker 重建，所有镜像和软件即会升级到最新版。
+
+```bash
+docker compose build
+```
 
 ### 查看日志
 
@@ -184,22 +124,8 @@ docker compose restart hugo-builder
 
 # 方法 2：通过 API
 curl -X POST http://localhost/webhook
-
-# 方法 3：手动触发
-curl -X POST http://localhost:5000/rebuild
 ```
 
-### 调试模式
-
-启用调试模式以查看更详细的日志：
-
-```bash
-# 前台运行查看实时日志
-docker compose --profile build up
-
-# 或者单独启动某个服务进行调试
-docker compose up hugo-builder
-```
 
 ## 生产部署
 
@@ -220,15 +146,10 @@ Caddy 会自动为你的域名申请 Let's Encrypt 证书。确保：
 - 域名 DNS 指向你的服务器
 - 端口 80 和 443 对外开放
 
-### 3. 数据持久化
-
-系统使用 Docker volumes 来持久化数据：
-
-- `site_data`：存储生成的静态网站文件
 
 ### 性能优化
 
-本 Wiki 系统为静态站点，服务器只在内容更新时进行构建，平时仅提供静态文件服务，性能开销极低。
+本 Wiki 系统为静态站点，服务器只在内容更新时进行构建，平时仅提供静态文件服务，性能开销极低。因此可以放心使用 Docker.
 
 ## 许可证
 
