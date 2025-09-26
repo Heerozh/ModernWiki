@@ -1,4 +1,4 @@
-:80 {
+${DOMAIN} {
     # Health check endpoint
     handle /health {
         respond "ModernWiki Proxy is healthy" 200

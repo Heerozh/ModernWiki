@@ -61,6 +61,9 @@ services:
       dockerfile: Dockerfile
     ports:
       - "80:80"
+      - "443:443"
+    env_file:
+      - .env.example
     volumes:
       # Mount additional Caddyfile configurations
       - ./proxy-config:/etc/caddy/conf.d:ro
