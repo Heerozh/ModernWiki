@@ -51,16 +51,11 @@ docker compose up -d
 ### 3. 访问 Wiki
 
 - 主站点：http://localhost
-- 静态站点（直接访问）：http://localhost:3000
 - Webhook 端点：http://localhost/webhook
-- 健康检查：http://localhost/health
 
-### 设置自动更新
+### 4. 设置自动更新
 
-当你的 Git 仓库内容更新时，可以通过以下方式触发站点重新构建：
-
-1. **Webhook 方式**：配置 Git 仓库的 webhook 指向 `http://your-domain/webhook`
-2. **手动触发**：发送 POST 请求到 `http://your-domain/webhook`
+当你的 Git 仓库内容更新时，配置 Git 仓库的 webhook 指向 `http://your-domain/webhook`
 
 ## 系统架构解析
 
@@ -119,32 +114,23 @@ docker compose logs -f proxy
 ### 手动重建站点
 
 ```bash
-# 方法 1：重启构建容器
 docker compose restart hugo-builder
 
-# 方法 2：通过 API
-curl -X POST http://localhost/webhook
 ```
-
 
 ## 生产部署
 
 ### 1. 使用域名
 
-修改 `containers/proxy/Caddyfile`，将 `:80` 替换为你的域名：
+修改 `.evn`，将 `DOMAIN=` 设置为你的域名。
 
-```caddyfile
-yourdomain.com {
-    # ... 其他配置保持不变
-}
-```
 
 ### 2. HTTPS 支持
 
 Caddy 会自动为你的域名申请 Let's Encrypt 证书。确保：
 
 - 域名 DNS 指向你的服务器
-- 端口 80 和 443 对外开放
+- 防火墙端口 80 和 443 对外开放
 
 
 ### 性能优化

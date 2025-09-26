@@ -5,22 +5,63 @@ Handles webhook requests to trigger site rebuilds.
 """
 
 import os
+import hmac
+import hashlib
 import logging
 import docker
-from flask import Flask, request, jsonify
-import threading
+from sanic import Sanic, request, response
+import asyncio
 import time
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-app = Flask(__name__)
+app = Sanic("ModernWikiWebhook")
 
 # Docker client
 docker_client = docker.from_env()
 
-def rebuild_site():
+# Get webhook secret from environment variable
+WEBHOOK_SECRET = os.environ.get('WEBHOOK_SECRET', '')
+
+def verify_github_signature(payload_body, signature_header):
+    """Verify GitHub webhook signature."""
+    if not WEBHOOK_SECRET:
+        logger.warning("WEBHOOK_SECRET not configured - skipping signature verification")
+        return True  # Allow requests if no secret is configured
+    
+    if not signature_header:
+        logger.warning("No signature header found")
+        return False
+    
+    try:
+        # GitHub sends signature as 'sha256=<hash>'
+        sha_name, signature = signature_header.split('=', 1)
+        if sha_name != 'sha256':
+            logger.warning(f"Unsupported signature algorithm: {sha_name}")
+            return False
+        
+        # Calculate expected signature
+        expected_signature = hmac.new(
+            WEBHOOK_SECRET.encode('utf-8'),
+            payload_body,
+            hashlib.sha256
+        ).hexdigest()
+        
+        # Compare signatures using secure comparison
+        if hmac.compare_digest(signature, expected_signature):
+            logger.info("GitHub signature verification successful")
+            return True
+        else:
+            logger.warning("GitHub signature verification failed")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error verifying signature: {str(e)}")
+        return False
+
+async def rebuild_site():
     """Rebuild the Hugo site by restarting the hugo-builder container."""
     try:
         logger.info("Starting site rebuild...")
@@ -45,16 +86,8 @@ def rebuild_site():
             logger.info("Stopping hugo-builder container...")
             hugo_container.stop()
             
-        # Remove the container
-        logger.info("Removing hugo-builder container...")
-        hugo_container.remove()
-        
-        # Restart the container (docker-compose will recreate it)
-        logger.info("Hugo builder container removed. Docker Compose will recreate it.")
-        
-        # Alternative: Use docker-compose restart if available
-        # This requires docker-compose to be installed in the container
-        # os.system("docker-compose restart hugo-builder")
+        logger.info("Restart hugo-builder container...")
+        hugo_container.restart()
         
         logger.info("Site rebuild triggered successfully")
         return True
@@ -64,82 +97,57 @@ def rebuild_site():
         return False
 
 @app.route('/webhook', methods=['POST'])
-def webhook():
+async def webhook(request):
     """Handle webhook requests to trigger site rebuild."""
     try:
         # Log the incoming request
-        logger.info(f"Webhook received from {request.remote_addr}")
+        logger.info(f"Webhook received from {request.ip}")
         
-        # Validate request (basic security)
+        # Verify GitHub signature
+        signature_header = request.headers.get('X-Hub-Signature-256')
+        payload_body = request.body
+        
+        if not verify_github_signature(payload_body, signature_header):
+            logger.warning("GitHub signature verification failed")
+            return response.json({'error': 'Unauthorized'}, status=401)
+        
+        # Validate request content type
         content_type = request.headers.get('Content-Type', '')
-        if 'application/json' not in content_type and 'application/x-www-form-urlencoded' not in content_type:
+        if 'application/json' not in content_type:
             logger.warning(f"Invalid content type: {content_type}")
-            return jsonify({'error': 'Invalid content type'}), 400
+            return response.json({'error': 'Invalid content type'}, status=400)
         
         # Get webhook data
-        if request.is_json:
-            data = request.get_json()
-        else:
-            data = request.form.to_dict()
+        data = request.json
         
-        logger.info(f"Webhook data: {data}")
+        # Log webhook event type and action (if available)
+        event_type = request.headers.get('X-GitHub-Event', 'unknown')
+        action = data.get('action', 'N/A') if data else 'N/A'
+        logger.info(f"GitHub event: {event_type}, action: {action}")
         
         # Trigger rebuild in background
-        thread = threading.Thread(target=rebuild_site)
-        thread.daemon = True
-        thread.start()
+        await rebuild_site()
         
-        return jsonify({
+        return response.json({
             'status': 'success',
             'message': 'Site rebuild triggered'
-        }), 200
+        })
         
     except Exception as e:
         logger.error(f"Error processing webhook: {str(e)}")
-        return jsonify({
+        return response.json({
             'status': 'error',
             'message': str(e)
-        }), 500
+        }, status=500)
 
-@app.route('/webhook', methods=['GET'])
-def webhook_info():
-    """Provide information about the webhook endpoint."""
-    return jsonify({
-        'service': 'ModernWiki Webhook Controller',
-        'endpoint': '/webhook',
-        'methods': ['POST'],
-        'description': 'Send POST requests to this endpoint to trigger site rebuilds'
-    })
 
-@app.route('/health', methods=['GET'])
-def health():
+@app.route('/webhook/health', methods=['GET'])
+async def health(request):
     """Health check endpoint."""
-    return jsonify({
+    return response.json({
         'status': 'healthy',
         'service': 'ModernWiki Webhook Controller'
     })
-
-@app.route('/rebuild', methods=['POST'])
-def manual_rebuild():
-    """Manual rebuild endpoint for testing."""
-    try:
-        success = rebuild_site()
-        if success:
-            return jsonify({
-                'status': 'success',
-                'message': 'Manual rebuild triggered'
-            }), 200
-        else:
-            return jsonify({
-                'status': 'error',
-                'message': 'Rebuild failed'
-            }), 500
-    except Exception as e:
-        logger.error(f"Error during manual rebuild: {str(e)}")
-        return jsonify({
-            'status': 'error',
-            'message': str(e)
-        }), 500
 
 if __name__ == '__main__':
     logger.info("Starting ModernWiki Webhook Controller...")

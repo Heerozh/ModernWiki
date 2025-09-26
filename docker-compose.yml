@@ -46,6 +46,8 @@ services:
     build:
       context: ./containers/webhook
       dockerfile: Dockerfile
+    env_file:
+      - .env.example      
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:
