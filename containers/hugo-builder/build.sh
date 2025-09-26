@@ -11,25 +11,32 @@ GIT_BRANCH=${GIT_BRANCH:-main}
 SITE_DIR=${SITE_DIR:-/site}
 
 echo "Starting Hugo site build..."
-echo "Git repo: ${GIT_REPO}"
-echo "Git branch: ${GIT_BRANCH}"
-echo "Output directory: ${SITE_DIR}"
 
-if [ -z "$GIT_REPO" ]; then
+# if not set GIT_REPO, and not set USE_LOCAL_SITE, exit with error
+if [ -z "$GIT_REPO" ] && [ -z "$USE_LOCAL_SITE" ]; then
     echo "Error: GIT_REPO environment variable is required"
     exit 1
 fi
 
-# Clean up any existing content，include .git folder
-rm -rf /src/*
-rm -rf /src/.* 2> /dev/null
-find "/src/" -type f | head -20
+# if USE_LOCAL_SITE not set
+if [ -z "$USE_LOCAL_SITE" ]; then
+    # Clean up any existing content，include .git folder
+    echo "Git repo: ${GIT_REPO}"
+    echo "Git branch: ${GIT_BRANCH}"
+    echo "Output directory: ${SITE_DIR}"
+    rm -rf /src/.* | true   
+    find "/src/" -type f | head -20
 
-# Clone the repository
-echo "Cloning repository..."
-git clone --depth 1 --branch "$GIT_BRANCH" "$GIT_REPO" /src
-cd /src
-git submodule update --init --recursive
+    # Clone the repository
+    echo "Cloning repository..."
+    git clone --depth 1 --branch "$GIT_BRANCH" "$GIT_REPO" /src
+    cd /src
+    git submodule update --init --recursive
+else
+    echo "USE_LOCAL_SITE mode: Skipping git clone"
+    find "/src/" -type f | head -20
+    cd /src
+fi
 
 # Check if this is a Hugo site
 if [ ! -f "/src/config.yaml" ] && [ ! -f "/src/config.toml" ] && [ ! -f "/src/config.yml" ] && [ ! -f "/src/hugo.yaml" ] && [ ! -f "/src/hugo.toml" ] && [ ! -f "/src/hugo.yml" ]; then
@@ -41,6 +48,7 @@ if [ ! -f "/src/config.yaml" ] && [ ! -f "/src/config.toml" ] && [ ! -f "/src/co
 fi
 
 # Save the Git remote URL to a file for reference
+echo "Saving Git remote URL and branch to data/gitremote.toml..."
 GIT_REMOTE_URL=$(git config --get remote.origin.url)
 CURRENT_BRANCH=$(git branch --show-current)
 mkdir -p data

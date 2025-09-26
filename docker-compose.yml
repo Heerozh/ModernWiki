@@ -11,10 +11,24 @@ services:
       - SITE_DIR=/site
     volumes:
       - site_data:/site
-      - /tmp/demo-wiki:/tmp/demo-wiki:ro  # Mount demo repository
     restart: "no"  # Run once to build site
-    # profiles:
-    #   - build
+
+  hugo-debug:
+    build:
+      context: ./containers/hugo-builder
+      dockerfile: Dockerfile
+    environment:
+      - SITE_DIR=/site
+      - USE_LOCAL_SITE=1
+    volumes:
+      - site_data:/site
+      - ..\ModernWikiTemplate\:/src/:ro  # Mount template config
+      - ..\ModernWikiTemplate\data:/src/data/
+      - ..\ModernWikiTemplate\.hugo_build.lock:/src/.hugo_build.lock
+      - ..\ModernWikiTemplate\public:/src/public
+    restart: "no" 
+    profiles:
+      - debug
 
   # Static site container with Caddy
   static-site:
