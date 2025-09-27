@@ -41,9 +41,6 @@ GIT_BRANCH=main
 构建并启动所有容器：
 
 ```bash
-# 构建站点（首次运行或内容更新时）
-docker compose --profile build up -d
-
 # 启动服务（日常使用）
 docker compose up -d
 ```
@@ -55,7 +52,20 @@ docker compose up -d
 
 ### 4. 设置自动更新
 
-当你的 Git 仓库内容更新时，配置 Git 仓库的 webhook 指向 `http://your-domain/webhook`
+以GitHub为例，设置 Push 时触发 Webhook：
+
+1. 进入你的 GitHub 仓库设置
+2. 点击 "Webhooks" 选项
+3. 点击 "Add webhook"
+4. 填写配置：
+   - **Payload URL**: `http://your-domain.com/webhook`
+   - **Content type**: `application/json`
+   - **Secret**: 输入你在步骤1中生成的密钥
+   - **Which events**: 选择 "Just the push event" 
+
+当你的 Git 仓库内容更新时，此 webhook 会触发 Hugo 重新构建网站。
+
+另支持 Gitea 和 GitLab，配置类似。
 
 ## 系统架构解析
 
@@ -115,7 +125,6 @@ docker compose logs -f proxy
 
 ```bash
 docker compose restart hugo-builder
-
 ```
 
 ## 生产部署
@@ -127,7 +136,7 @@ docker compose restart hugo-builder
 
 ### 2. HTTPS 支持
 
-Caddy 会自动为你的域名申请 Let's Encrypt 证书。确保：
+系统会自动为你的域名申请 Let's Encrypt 证书。确保：
 
 - 域名 DNS 指向你的服务器
 - 防火墙端口 80 和 443 对外开放
