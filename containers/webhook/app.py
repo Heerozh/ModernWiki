@@ -33,14 +33,14 @@ def detect_webhook_provider(headers):
         return 'gitea'
     elif 'X-Gitlab-Event' in headers or 'X-Gitlab-Token' in headers:
         return 'gitlab'
+    elif 'X-Gitee-Token' in headers:
+        return 'gitee'
     else:
         # Default fallback - try to detect by signature headers
         if 'X-Hub-Signature-256' in headers:
             return 'github'
         elif 'X-Gitea-Signature' in headers:
             return 'gitea'
-        elif 'X-Gitlab-Token' in headers:
-            return 'gitlab'
         return 'unknown'
 
 def verify_webhook_signature(payload_body, headers, provider=None):
@@ -71,12 +71,15 @@ def verify_webhook_signature(payload_body, headers, provider=None):
             return _verify_gitea_signature(payload_body, headers)
         elif provider == 'gitlab':
             return _verify_gitlab_signature(payload_body, headers)
+        elif provider == 'gitee':
+            return _verify_gitee_signature(payload_body, headers)
         else:
             logger.warning(f"Unknown webhook provider: {provider}")
             # Try all verification methods as fallback
             return (_verify_github_signature(payload_body, headers) or
                     _verify_gitea_signature(payload_body, headers) or
-                    _verify_gitlab_signature(payload_body, headers))
+                    _verify_gitlab_signature(payload_body, headers) or
+                    _verify_gitee_signature(payload_body, headers))
             
     except Exception as e:
         logger.error(f"Error verifying webhook signature: {str(e)}")
@@ -161,6 +164,33 @@ def _verify_gitlab_signature(payload_body, headers):
     except Exception as e:
         logger.debug(f"GitLab token verification error: {str(e)}")
         return False
+    
+def _verify_gitee_signature(payload_body, headers):
+    """Verify Gitee webhook signature or token."""
+    # Gitee支持两种验证方式：
+    # 1. 简单Token验证 (X-Gitee-Token)
+    # 2. 签名验证 (X-Gitee-Timestamp + X-Gitee-Token)
+    # 第二种文档不清晰，只支持第一种
+    
+    # Token验证
+    token_header = headers.get('X-Gitee-Token')
+    if not token_header:
+        logger.debug("No Gitee token or signature header found")
+        return False
+    
+    try:
+        # Gitee token验证（与GitLab类似）
+        if hmac.compare_digest(token_header, WEBHOOK_SECRET):
+            logger.info("Gitee token verification successful")
+            return True
+        else:
+            logger.debug("Gitee token verification failed")
+            return False
+            
+    except Exception as e:
+        logger.debug(f"Gitee token verification error: {str(e)}")
+        return False
+
 
 # Legacy function for backward compatibility
 def verify_github_signature(payload_body, signature_header):
@@ -196,6 +226,13 @@ def test_webhook_signature_verification():
     is_valid_gitlab = verify_webhook_signature(payload_body, gitlab_headers, 'gitlab')
     assert is_valid_gitlab, "GitLab token verification failed"
     print("GitLab token verification test passed")
+    
+    # Test Gitee token (simple token comparison)
+    gitee_headers = {'X-Gitee-Token': "It's a Secret to Everybody", 'X-Gitee-Event': 'Push Hook'}
+    is_valid_gitee = verify_webhook_signature(payload_body, gitee_headers, 'gitee')
+    assert is_valid_gitee, "Gitee token verification failed"
+    print("Gitee token verification test passed")
+    
     
     print("All webhook signature verification tests passed")
 
@@ -266,6 +303,8 @@ async def webhook(request):
             event_type = request.headers.get('X-Gitea-Event', 'unknown')
         elif provider == 'gitlab':
             event_type = request.headers.get('X-Gitlab-Event', 'unknown')
+        elif provider == 'gitee':
+            event_type = request.headers.get('X-Gitee-Event', 'unknown')
         else:
             event_type = 'unknown'
         
@@ -294,13 +333,13 @@ async def health(request):
     return response.json({
         'status': 'healthy',
         'service': 'ModernWiki Webhook Controller',
-        'supported_platforms': ['GitHub', 'Gitea', 'GitLab']
+        'supported_platforms': ['GitHub', 'Gitea', 'GitLab', 'Gitee']
     })
 
 if __name__ == '__main__':
     # test_webhook_signature_verification()
-    # asyncio.run(rebuild_site())
+    # # asyncio.run(rebuild_site())
     # os._exit(0)
     logger.info("Starting ModernWiki Webhook Controller...")
-    logger.info("Supported platforms: GitHub, Gitea, GitLab")
+    logger.info("Supported platforms: GitHub, Gitea, GitLab, Gitee")
     app.run(host='0.0.0.0', port=5000, debug=True)

@@ -10,11 +10,13 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 
 内容仓库就是 Wiki 的数据仓库，请使用 [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git) 仓库为模板。仓库为 Hugo 项目格式，你可以在其中任意修改网站样式。
 
-可以直接在 GitHub Fork，或用其他 Git 托管，也可通过 Gitea 搭建私有 Git 托管。
+可以直接在 GitHub Fork，推荐通过 Gitea 搭建私有 Git 托管。另支持 码云、GitLab。
 
-> 注意仓库权限可打开 Write 让用户可直接 Push，否则需要通过 RP 审核。如果希望 Content 目录可任意 Push，而其他配置和样式文件不可 Push，可以使用 Git 子模块，用 2 个不同的仓库完成。
+> 注意仓库权限需打开所有人可 Push，否则要通过 RP 审核。如果只希望 Content 目录可 Push，而站点配置和样式文件需 PR，可以使用 Git 子模块，用 2 个不同的仓库完成。
 
 ## 2. 网站服务器
+
+本 Wiki 系统只在仓库更新时进行构建，平时为静态文件服务，性能开销极低。因此只需通过 Docker 就能轻松高性能运行。
 
 前往某云，购买轻量应用服务器，开 docker，clone 本 repo，修改.env 文件，docker-compose up -d
 
@@ -65,7 +67,7 @@ docker compose up -d
 
 当你的 Git 仓库内容更新时，此 Webhook 会触发 Hugo 重新构建网站。
 
-另支持 Gitea 和 GitLab 的 Webhook，配置类似。
+另支持 Gitea， 码云（仅WebHook 密码模式） 和 GitLab，配置类似。
 
 ## 系统架构解析
 
@@ -141,10 +143,6 @@ docker compose restart hugo-builder
 - 域名 DNS 指向你的服务器
 - 防火墙端口 80 和 443 对外开放
 
-
-### 性能优化
-
-本 Wiki 系统为静态站点，服务器只在内容更新时进行构建，平时仅提供静态文件服务，性能开销极低。因此可以放心使用 Docker.
 
 ## 许可证
 
