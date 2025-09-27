@@ -56,16 +56,16 @@ docker compose up -d
 
 1. 进入你的 GitHub 仓库设置
 2. 点击 "Webhooks" 选项
-3. 点击 "Add webhook"
+3. 点击 "Add Webhook"
 4. 填写配置：
    - **Payload URL**: `http://your-domain.com/webhook`
    - **Content type**: `application/json`
-   - **Secret**: 输入你在步骤1中生成的密钥
+   - **Secret**: 输入你的随机密码
    - **Which events**: 选择 "Just the push event" 
 
-当你的 Git 仓库内容更新时，此 webhook 会触发 Hugo 重新构建网站。
+当你的 Git 仓库内容更新时，此 Webhook 会触发 Hugo 重新构建网站。
 
-另支持 Gitea 和 GitLab，配置类似。
+另支持 Gitea 和 GitLab 的 Webhook，配置类似。
 
 ## 系统架构解析
 
@@ -73,7 +73,7 @@ ModernWiki 由四个 Docker 容器合并组成：
 
 ### 1. 站点刷新容器 (hugo-builder)
 
-- 拉取 Git 仓库并使用 Hugo 生成静态网页
+- 拉取公共 Git 仓库并使用 Hugo 生成静态网页
 - 输出到共享的 `site` 目录
 - 一次性容器，执行完退出。
 
@@ -84,14 +84,14 @@ ModernWiki 由四个 Docker 容器合并组成：
 ### 3. Webhook 控制器容器 (webhook)
 
 - 持续接收 git push 时的 webhook 请求
-- 收到后 restart hugo-builder
+- 收到后通过 Docker API，重启 hugo-builder
 
 ### 4. 入口反代容器 (proxy)
 
 - 监听 80 端口作为入口
 - 路由规则：
-  - `/` → 静态网页容器
-  - `/webhook` → webhook 容器
+  - `/` → 静态站点容器
+  - `/webhook` → Webhook 容器
   - 支持导入额外的 Caddyfile 站点配置
 
 ## 开发和调试
@@ -136,7 +136,7 @@ docker compose restart hugo-builder
 
 ### 2. HTTPS 支持
 
-系统会自动为你的域名申请 Let's Encrypt 证书。确保：
+无需配置，系统会自动且定期为你的域名申请 Let's Encrypt 或 ZeroSSL 免费证书。确保：
 
 - 域名 DNS 指向你的服务器
 - 防火墙端口 80 和 443 对外开放
