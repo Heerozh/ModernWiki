@@ -1,5 +1,18 @@
 
 services:
+  gitea:
+    image: docker.gitea.com/gitea:1.24.6-rootless
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - ./data/gitea:/var/lib/gitea
+    ports:
+      - "4000:3000"
+      - "2222:2222"
+    profiles:
+      - with-gitea
+
   # Hugo site generation container
   hugo-builder:
     build:
@@ -47,7 +60,7 @@ services:
       context: ./containers/webhook
       dockerfile: Dockerfile
     env_file:
-      - .env    
+      - .env
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     ports:

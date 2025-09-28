@@ -25,7 +25,7 @@ Thumbs.db
 *.swo
 
 # Ignore Docker volumes
-site_data/
 containers/webhook/uv.lock
 containers/webhook/.python-version
 containers/webhook/pyproject.toml
+data/

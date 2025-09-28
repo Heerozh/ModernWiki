@@ -8,6 +8,11 @@ ${DOMAIN} {
     handle /webhook* {
         reverse_proxy webhook:5000
     }
+
+    handle /repo* {
+        uri strip_prefix /git
+        reverse_proxy gitea:3000
+    }
     
     # Import additional Caddyfile configurations
     # Users can mount their own rules to /etc/caddy/conf.d/
