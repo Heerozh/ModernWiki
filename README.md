@@ -4,22 +4,11 @@
 
 Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的管理恶意破坏问题，而 Markdown 也更易于编辑。
 
-## 使用方式
-
-## 1. 内容仓库
-
-内容仓库就是 Wiki 的页面仓库，提供给用户任意修改，请使用 [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git) 仓库为模板。仓库为 Hugo 项目格式，你可以在其中任意修改网站样式。
-
-
-## 2. 网站服务器
-
-本 Wiki 系统只在仓库更新时进行构建，平时为静态文件服务，性能开销极低。因此只需通过 Docker 就能轻松高性能运行。
-
-前往某云，购买轻量应用服务器，开 docker，clone 本 repo，修改.env 文件，docker-compose up -d
-
 ## 快速开始
 
-### 1. 设置 Git 仓库
+## 1. 建内容仓库
+
+内容仓库就是 Wiki 的页面仓库，提供给用户任意修改，请使用 [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git) 仓库为模板。仓库为 Hugo 项目格式，你可以在其中任意修改网站样式。
 
 **GitHub:**
 
@@ -28,14 +17,13 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 
 **（推荐）私有 Git 仓库：**
 
-访问 http://localhost/git ，直接点Install Gitea，注册一个本地 Admin 账号，创建仓库时选 migrate，
+访问 http://localhost/git ，直接点Install Gitea(立即安装)，注册一个 Admin 账号，点右上角 ➕，选 migrate（迁移外部仓库），
 克隆 https://github.com/Heerozh/ModernWikiTemplate.git
-
-Gitea 的数据储存在 `data/gitea` 目录下。
+，改名为Wiki。
 
 > 注意仓库权限需打开所有人可 Push，否则要通过 RP 审核。如果只希望 Content 目录可 Push，而站点配置和样式文件需 PR，可以使用 Git 子模块，用 2 个不同的仓库完成。
 
-### 2. 配置环境变量
+## 2. 配置环境变量
 
 复制环境变量模板：
 
@@ -50,24 +38,28 @@ GIT_REPO=https://github.com/your-username/your-wiki-content.git
 GIT_BRANCH=main
 DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
 ```
+
 > [!NOTE] 每次修改 `.env` 后，需重新构建镜像：`docker compose build`
 
-### 3. 启动系统
+## 3. 启动系统
 
 启动所有容器：
 
 ```bash
-# 启动服务（日常使用）
+# 启动服务（第三方Git托管）
 docker compose up -d
+
+# 启动服务（本地自建Gitea托管)
+docker compose --profile with-gitea up -d
 ```
 
-### 4. 访问 Wiki
+## 4. 访问 Wiki
 
 - 主站点：http://localhost
 - Webhook 端点：http://localhost/webhook
+- Gitea本地仓库（如果启用）：http://localhost/git/
 
-
-### 5. 设置自动更新
+## 5. 设置自动更新
 
 以GitHub为例，设置 Push 时触发 Webhook：
 
@@ -86,7 +78,7 @@ docker compose up -d
 
 ## 系统架构解析
 
-ModernWiki 由四个 Docker 容器合并组成：
+ModernWiki 由多个 Docker 容器合并组成，选用轻量级系统，仅130M内存：
 
 ### 1. 站点刷新容器 (hugo-builder)
 
@@ -103,7 +95,17 @@ ModernWiki 由四个 Docker 容器合并组成：
 - 持续接收 git push 时的 webhook 请求
 - 收到后通过 Docker API，重启 hugo-builder
 
-### 4. 入口反代容器 (proxy)
+### 4. 评论服务器
+
+- waline
+
+
+### 5. 可选：Gitea 容器 (gitea)
+
+- 可选容器，用于自建 Git 网页托管
+- Gitea 的数据储存在 `data/gitea` 目录下，需要备份
+
+### 6. 入口反代容器 (proxy)
 
 - 监听 80 端口作为入口
 - 路由规则：
@@ -146,6 +148,8 @@ docker compose restart hugo-builder
 
 ## 生产部署
 
+本 Wiki 系统只在仓库更新时进行构建，平时为静态文件服务，性能开销极低。所以突发性能实例就足够（**价格-50%**）。
+
 ### 1. 使用域名
 
 修改 `.evn`，将 `DOMAIN=` 设置为你的域名。
@@ -157,6 +161,15 @@ docker compose restart hugo-builder
 
 - 域名 DNS 指向你的服务器
 - 防火墙端口 80 和 443 对外开放
+
+## Serverless 部署方式 （TODO）
+
+这是一种价格最低的部署方式，只需购买带宽和存储，但部署麻烦，功能少，不推荐仅供参考。
+
+- 使用第三方托管仓库
+- 利用函数计算FC，通过Http触发器接收Webhook，启动hugo-builder容器，输出到OSS储存
+- 对OSS开启静态网站托管，设置域名
+- 再设一个函数计算FC，每个月定时触发，更新并上传SSL证书到OSS
 
 
 ## 许可证
