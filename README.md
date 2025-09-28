@@ -10,12 +10,14 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 
 内容仓库就是 Wiki 的页面仓库，提供给用户任意修改，请使用 [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git) 仓库为模板。仓库为 Hugo 项目格式，你可以在其中任意修改网站样式。
 
-**GitHub:**
+### **GitHub:**
 
 直接 Fork [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git)
 另支持 码云、GitLab。
 
-**（推荐）私有 Git 仓库：**
+### **（推荐）私有 Git 仓库：**
+
+先跳过，启动完系统后，回来设置：
 
 访问 http://localhost/git ，直接点Install Gitea(立即安装)，注册一个 Admin 账号，点右上角 ➕，选 migrate（迁移外部仓库），
 克隆 https://github.com/Heerozh/ModernWikiTemplate.git
@@ -34,16 +36,18 @@ cp .env.example .env
 编辑 `.env` 文件，设置你的 Git 仓库：
 
 ```bash
-GIT_REPO=https://github.com/your-username/your-wiki-content.git
-GIT_BRANCH=main
+GIT_REPO=https:/domain.com/your-username/your-wiki-content.git
+GIT_BRANCH=master
 DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
 ```
 
-> [!NOTE] 每次修改 `.env` 后，需重新构建镜像：`docker compose build`
+> [!NOTE] 
+> 每次修改 `.env` 后，需重新构建镜像：`docker compose build`
 
 ## 3. 启动系统
 
-启动所有容器：
+先安装 Docker Engine 和 docker-compose-plugin，然后：
+
 
 ```bash
 # 启动服务（第三方Git托管）
