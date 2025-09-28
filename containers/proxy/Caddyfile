@@ -9,7 +9,7 @@ ${DOMAIN} {
         reverse_proxy webhook:5000
     }
 
-    handle /repo* {
+    handle /git* {
         uri strip_prefix /git
         reverse_proxy gitea:3000
     }

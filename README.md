@@ -8,11 +8,8 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 
 ## 1. 内容仓库
 
-内容仓库就是 Wiki 的数据仓库，请使用 [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git) 仓库为模板。仓库为 Hugo 项目格式，你可以在其中任意修改网站样式。
+内容仓库就是 Wiki 的页面仓库，提供给用户任意修改，请使用 [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git) 仓库为模板。仓库为 Hugo 项目格式，你可以在其中任意修改网站样式。
 
-可以直接在 GitHub Fork，推荐通过 Gitea 搭建私有 Git 托管。另支持 码云、GitLab。
-
-> 注意仓库权限需打开所有人可 Push，否则要通过 RP 审核。如果只希望 Content 目录可 Push，而站点配置和样式文件需 PR，可以使用 Git 子模块，用 2 个不同的仓库完成。
 
 ## 2. 网站服务器
 
@@ -20,10 +17,24 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 
 前往某云，购买轻量应用服务器，开 docker，clone 本 repo，修改.env 文件，docker-compose up -d
 
-
 ## 快速开始
 
-### 1. 配置环境变量
+### 1. 设置 Git 仓库
+
+**GitHub:**
+
+直接 Fork [ModernWikiTemplate](https://github.com/Heerozh/ModernWikiTemplate.git)
+另支持 码云、GitLab。
+
+**（推荐）私有 Git 仓库：**
+
+访问 http://localhost/git ，直接点Install Gitea，注册一个本地 Admin 账号，创建仓库时选 migrate，
+克隆 https://github.com/Heerozh/ModernWikiTemplate.git
+
+
+> 注意仓库权限需打开所有人可 Push，否则要通过 RP 审核。如果只希望 Content 目录可 Push，而站点配置和样式文件需 PR，可以使用 Git 子模块，用 2 个不同的仓库完成。
+
+### 2. 配置环境变量
 
 复制环境变量模板：
 
@@ -36,23 +47,26 @@ cp .env.example .env
 ```bash
 GIT_REPO=https://github.com/your-username/your-wiki-content.git
 GIT_BRANCH=main
+DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
 ```
+> [!NOTE] 每次修改 `.env` 后，需重新构建镜像：`docker compose build`
 
-### 2. 启动系统
+### 3. 启动系统
 
-构建并启动所有容器：
+启动所有容器：
 
 ```bash
 # 启动服务（日常使用）
 docker compose up -d
 ```
 
-### 3. 访问 Wiki
+### 4. 访问 Wiki
 
 - 主站点：http://localhost
 - Webhook 端点：http://localhost/webhook
 
-### 4. 设置自动更新
+
+### 5. 设置自动更新
 
 以GitHub为例，设置 Push 时触发 Webhook：
 
