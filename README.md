@@ -31,6 +31,7 @@ Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的�
 访问 http://localhost/git ，直接点Install Gitea，注册一个本地 Admin 账号，创建仓库时选 migrate，
 克隆 https://github.com/Heerozh/ModernWikiTemplate.git
 
+Gitea 的数据储存在 `data/gitea` 目录下。
 
 > 注意仓库权限需打开所有人可 Push，否则要通过 RP 审核。如果只希望 Content 目录可 Push，而站点配置和样式文件需 PR，可以使用 Git 子模块，用 2 个不同的仓库完成。
 
