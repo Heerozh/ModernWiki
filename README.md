@@ -101,7 +101,7 @@ ModernWiki 由多个 Docker 容器合并组成，选用轻量级系统，仅130M
 
 ### 4. 评论服务器
 
-- waline
+- artalk
 
 
 ### 5. 可选：Gitea 容器 (gitea)
@@ -121,14 +121,11 @@ ModernWiki 由多个 Docker 容器合并组成，选用轻量级系统，仅130M
 
 ### 升级
 
-首先更新本仓库
-```bash
-git pull
-```
-然后执行 docker 重建，所有镜像和软件即会升级到最新版。
+首先更新本仓库，然后执行 docker 重建，所有镜像和软件即会升级到最新版。
 
 ```bash
-docker compose build
+git pull
+docker compose build --pull
 ```
 
 ### 查看日志

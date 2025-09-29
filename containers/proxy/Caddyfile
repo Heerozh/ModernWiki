@@ -13,6 +13,8 @@ ${DOMAIN} {
         uri strip_prefix /git
         reverse_proxy gitea:3000
     }
+
+    # todo handle artalk
     
     # Import additional Caddyfile configurations
     # Users can mount their own rules to /etc/caddy/conf.d/

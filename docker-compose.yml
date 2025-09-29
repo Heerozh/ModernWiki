@@ -69,6 +69,18 @@ services:
       - FLASK_ENV=production
     restart: unless-stopped
 
+  artalk:
+    image: artalk/artalk-go
+    restart: unless-stopped
+    ports:
+      - 8080:23366
+    volumes:
+      - ./data/artalk:/data
+    env_file:
+      - .env
+    environment:
+      - ATK_AUTH_EMAIL_ENABLED=false
+
   # Entry reverse proxy container
   proxy:
     build:
