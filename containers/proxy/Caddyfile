@@ -1,4 +1,4 @@
-${DOMAIN} {
+{$LISTEN_DOMAIN} {
     # Health check endpoint
     handle /health {
         respond "ModernWiki Proxy is healthy" 200

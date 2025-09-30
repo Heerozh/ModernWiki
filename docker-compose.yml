@@ -30,6 +30,8 @@ services:
     build:
       context: ./containers/hugo-builder
       dockerfile: Dockerfile
+    env_file:
+      - .env
     environment:
       - SITE_DIR=/site
       - USE_LOCAL_SITE=1

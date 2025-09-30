@@ -58,34 +58,6 @@ url = "$GIT_REMOTE_URL"
 branch = "$CURRENT_BRANCH"
 EOF
 
-# Setting Domain
-if [ -n "$DOMAIN" ]; then
-    echo "Setting site domain to $DOMAIN in config/hugo.toml"
-    if [ -f "config.toml" ]; then
-        sed -i "s|^baseURL = .*|baseURL = \"https://$DOMAIN/\"|" config.toml
-        head -1 config.toml
-    elif [ -f "config.yaml" ]; then
-        sed -i "s|^baseURL: .*|baseURL: \"https://$DOMAIN/\"|" config.yaml
-        head -1 config.yaml
-    elif [ -f "config.yml" ]; then
-        sed -i "s|^baseURL: .*|baseURL: \"https://$DOMAIN/\"|" config.yml
-        head -1 config.yml
-    elif [ -f "hugo.toml" ]; then
-        sed -i "s|^baseURL = .*|baseURL = \"https://$DOMAIN/\"|" hugo.toml
-        head -1 hugo.toml
-    elif [ -f "hugo.yaml" ]; then
-        sed -i "s|^baseURL: .*|baseURL: \"https://$DOMAIN/\"|" hugo.yaml
-        head -1 hugo.yaml
-    elif [ -f "hugo.yml" ]; then
-        sed -i "s|^baseURL: .*|baseURL: \"https://$DOMAIN/\"|" hugo.yml
-        head -1 hugo.yml
-    else
-        echo "No config.toml or hugo.yaml found to set baseURL"
-    fi
-else
-    echo "DOMAIN not set, skipping baseURL configuration"
-fi
-
 # Build the site
 echo "Building Hugo site..."
 echo "Source files:"
