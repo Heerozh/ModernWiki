@@ -31,3 +31,25 @@
         level INFO
     }
 }
+
+{$ATK_LISTEN_DOMAIN} {
+    @api_cors {
+        header Origin *
+        path /api/*
+    }
+    handle @api_cors {
+        header {
+            Access-Control-Allow-Origin {http.request.header.Origin}
+            Access-Control-Allow-Methods "GET, POST, OPTIONS"
+            Access-Control-Allow-Headers "Content-Type, Authorization"
+        }
+        reverse_proxy artalk:23366 {
+            header_up X-Forwarded-For {header.X-Forwarded-For}
+        }
+    }
+    handle {
+        reverse_proxy artalk:23366 {
+            header_up X-Forwarded-For {header.X-Forwarded-For}
+        }
+    }
+}

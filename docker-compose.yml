@@ -74,8 +74,6 @@ services:
   artalk:
     image: artalk/artalk-go
     restart: unless-stopped
-    ports:
-      - 8080:23366
     volumes:
       - ./data/artalk:/data
     env_file:
@@ -91,6 +89,7 @@ services:
     ports:
       - "80:80"
       - "443:443"
+      - "8080:8080" 
     env_file:
       - .env
     volumes:
