@@ -99,10 +99,12 @@ ModernWiki 由多个 Docker 容器合并组成，选用轻量级系统，仅130M
 - 持续接收 git push 时的 webhook 请求
 - 收到后通过 Docker API，重启 hugo-builder
 
-### 4. 评论服务器
+### 4. 评论服务器 (artalk)
 
-- artalk
-
+- 提供页面底部的轻量级评论
+- 数据储存在 `data/artalk` 目录下，需要备份
+- 执行 `docker exec -it modernwiki-artalk-1 artalk admin` 创建管理员账号
+- .env设置参考 [Artalk环境变量](https://artalk.js.org/zh/guide/env.html)
 
 ### 5. 可选：Gitea 容器 (gitea)
 
