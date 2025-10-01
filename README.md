@@ -38,7 +38,7 @@ cp .env.example .env
 ```bash
 GIT_REPO=https:/domain.com/your-username/your-wiki-content.git
 GIT_BRANCH=master
-DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
+LISTEN_DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
 ```
 
 > [!NOTE] 
@@ -51,10 +51,10 @@ DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
 
 ```bash
 # 启动服务（第三方Git托管）
-docker compose up -d
+docker compose up -d --build
 
 # 启动服务（本地自建Gitea托管)
-docker compose --profile with-gitea up -d
+docker compose --profile with-gitea up -d --build
 ```
 
 ## 4. 访问 Wiki
@@ -82,7 +82,7 @@ docker compose --profile with-gitea up -d
 
 ## 系统架构解析
 
-ModernWiki 由多个 Docker 容器合并组成，选用轻量级系统，仅130M内存：
+ModernWiki 由多个 Docker 容器合并组成，选用轻量级系统，仅150M内存 + Gitea(100M)：
 
 ### 1. 站点刷新容器 (hugo-builder)
 
