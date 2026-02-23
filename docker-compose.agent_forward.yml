@@ -1,0 +1,7 @@
+services:
+  hugo-builder:
+    environment:
+      SSH_AUTH_SOCK: /ssh-agent
+    volumes:
+      - ${SSH_AUTH_SOCK:?SSH_AUTH_SOCK is not set}:/ssh-agent
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
