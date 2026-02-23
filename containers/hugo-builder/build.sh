@@ -3,11 +3,13 @@
 # Environment variables:
 # GIT_REPO - Git repository URL
 # GIT_BRANCH - Git branch (default: main)
+# GIT_DEPTH - Clone depth; 0 means full history (default: 0)
 # SITE_DIR - Output directory for static site (default: /site)
 
 set -e
 
 GIT_BRANCH=${GIT_BRANCH:-main}
+GIT_DEPTH=${GIT_DEPTH:-0}
 SITE_DIR=${SITE_DIR:-/site}
 
 echo "Starting Hugo site build..."
@@ -30,7 +32,11 @@ if [ -z "$USE_LOCAL_SITE" ]; then
 
     # Clone the repository
     echo "Cloning repository..."
-    git clone --depth 1 --branch "$GIT_BRANCH" "$GIT_REPO" /src
+    if [ "$GIT_DEPTH" = "0" ]; then
+        git clone --branch "$GIT_BRANCH" "$GIT_REPO" /src
+    else
+        git clone --depth "$GIT_DEPTH" --branch "$GIT_BRANCH" "$GIT_REPO" /src
+    fi
     cd /src
     git submodule update --init --recursive
 else
