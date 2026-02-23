@@ -58,6 +58,18 @@ url = "$GIT_REMOTE_URL"
 branch = "$CURRENT_BRANCH"
 EOF
 
+# Generate per-file git history for templates
+if [ -f "./scripts/gen-git-history.ps1" ]; then
+    if command -v pwsh >/dev/null 2>&1; then
+        echo "Generating per-file git history data..."
+        pwsh ./scripts/gen-git-history.ps1 -Limit 10
+    else
+        echo "pwsh not found, skip git history generation"
+    fi
+else
+    echo "scripts/gen-git-history.ps1 not found, skip git history generation"
+fi
+
 # Build the site
 echo "Building Hugo site..."
 echo "Source files:"
