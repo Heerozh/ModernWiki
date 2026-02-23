@@ -22,8 +22,11 @@ services:
       - .env
     environment:
       - SITE_DIR=/site
+      - SSH_AUTH_SOCK=/ssh-agent
     volumes:
       - site_data:/site
+      - ${SSH_AUTH_SOCK}:/ssh-agent
+      - ~/.ssh/known_hosts:/root/.ssh/known_hosts:ro
     restart: "no"  # Run once to build site
 
   hugo-debug:

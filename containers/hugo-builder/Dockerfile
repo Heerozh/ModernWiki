@@ -1,5 +1,9 @@
 FROM hugomods/hugo:git
 
+# Install SSH client for cloning git@... repositories
+RUN apk update && apk --no-cache upgrade
+RUN apk add --no-cache openssh-client
+
 # Create working directory
 WORKDIR /src
 
