@@ -64,6 +64,26 @@ url = "$GIT_REMOTE_URL"
 branch = "$CURRENT_BRANCH"
 EOF
 
+# Auto-translate newly added untranslated pages
+if [ -f "./scripts/translate_new_content.py" ]; then
+    if [ -z "$TRANSLATE_API_URL" ] || [ -z "$TRANSLATE_API_TOKEN" ] || [ -z "$TRANSLATE_API_MODEL" ]; then
+        echo "Error: TRANSLATE_API_URL, TRANSLATE_API_TOKEN, and TRANSLATE_API_MODEL are required for scripts/translate_new_content.py"
+        exit 1
+    fi
+
+    echo "Running scripts/translate_new_content.py..."
+    if command -v python3 >/dev/null 2>&1; then
+        python3 ./scripts/translate_new_content.py
+    elif command -v python >/dev/null 2>&1; then
+        python ./scripts/translate_new_content.py
+    else
+        echo "Error: Python runtime not found (python3/python)"
+        exit 1
+    fi
+else
+    echo "scripts/translate_new_content.py not found, skip auto translation"
+fi
+
 # Generate per-file git history for templates
 if [ -f "./scripts/gen-git-history.sh" ]; then
     echo "Generating per-file git history data..."
