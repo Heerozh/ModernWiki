@@ -5,12 +5,16 @@
 # GIT_BRANCH - Git branch (default: main)
 # GIT_DEPTH - Clone depth; 0 means full history (default: 0)
 # SITE_DIR - Output directory for static site (default: /site)
+# GIT_COMMIT_AUTHOR_NAME - Git author name for automated commits (default: hugo-builder)
+# GIT_COMMIT_AUTHOR_EMAIL - Git author email for automated commits (default: hugo-builder@local)
 
 set -e
 
 GIT_BRANCH=${GIT_BRANCH:-main}
 GIT_DEPTH=${GIT_DEPTH:-0}
 SITE_DIR=${SITE_DIR:-/site}
+GIT_COMMIT_AUTHOR_NAME=${GIT_COMMIT_AUTHOR_NAME:-hugo-builder}
+GIT_COMMIT_AUTHOR_EMAIL=${GIT_COMMIT_AUTHOR_EMAIL:-hugo-builder@local}
 
 echo "Starting Hugo site build..."
 
@@ -63,6 +67,13 @@ cat > data/gitremote.toml << EOF
 url = "$GIT_REMOTE_URL"
 branch = "$CURRENT_BRANCH"
 EOF
+
+# Configure git author identity for automated commit/push scripts
+if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    git config user.name "$GIT_COMMIT_AUTHOR_NAME"
+    git config user.email "$GIT_COMMIT_AUTHOR_EMAIL"
+    echo "Configured git author: ${GIT_COMMIT_AUTHOR_NAME} <${GIT_COMMIT_AUTHOR_EMAIL}>"
+fi
 
 # Auto-translate newly added untranslated pages
 if [ -f "./scripts/translate_new_content.py" ]; then
