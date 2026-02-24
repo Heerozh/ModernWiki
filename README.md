@@ -4,6 +4,8 @@
 
 Wiki 的本质是版本控制和开源协作，使用成熟的 Git 可更好的管理恶意破坏问题，而 Markdown 也更易于编辑。
 
+本系统只要用户，push了新的 Markdown 内容，就会自动重新构建静态站点，且自动AI翻译新增内容到所有语言。
+
 ## 快速开始
 
 ## 1. 建内容仓库
@@ -39,6 +41,11 @@ cp .env.example .env
 GIT_REPO=https:/domain.com/your-username/your-wiki-content.git
 GIT_BRANCH=master
 LISTEN_DOMAIN=:80 # 本地测试只能使用:80，不然会无法访问
+
+# 自动翻译 API 配置，使用 OpenAI Completion API
+TRANSLATE_API_URL = "https://api.deepseek.com/v1"  
+TRANSLATE_API_TOKEN = "sk-xxxxxx"
+TRANSLATE_API_MODEL = "deepseek-chat"    
 ```
 
 > [!NOTE] 
