@@ -47,9 +47,8 @@ services:
 
   # Static site container with Caddy
   static-site:
-    build:
-      context: ./containers/static-site
-      dockerfile: Dockerfile
+    image: caddy:latest
+    command: ["file-server", "--listen", ":3000", "--root", "/site"]
     volumes:
       - site_data:/site:ro
     ports:
